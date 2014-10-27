@@ -20,5 +20,20 @@ subtract = fmap (const subtract) subtractChar
   where subtract a b = a - b
         subtractChar = char '-'
 
-chainPlusSubtract :: Parser Float
-chainPlusSubtract = chainl1 number (plus <|> subtract) 
+
+divide :: Parser (Float -> Float -> Float)
+divide = fmap (const divide) divideChar
+  where divide a b = a / b
+        divideChar = char '/'
+
+multiply :: Parser (Float -> Float -> Float)
+multiply = fmap (const multiply) multiplyChar
+  where multiply a b = a * b
+        multiplyChar = char '*'
+
+chainMultiplyDivide :: Parser Float
+chainMultiplyDivide = chainl1 number (divide <|> multiply) 
+
+expression :: Parser Float
+expression = chainl1 chainMultiplyDivide (plus <|> subtract) 
+
