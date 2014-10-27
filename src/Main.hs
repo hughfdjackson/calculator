@@ -4,11 +4,9 @@ import Text.Parsec.String (Parser)
 
 
 number :: Parser Float
-number = withWhitespace plainNumber
-  where plainNumber = fmap readFloat numberString
-        readFloat = read :: String -> Float
+number = fmap readFloat numberString
+  where readFloat = read :: String -> Float
         numberString = many1 digit
-        withWhitespace parser = between spaces spaces parser 
 
 plus :: Parser (Float -> Float -> Float)
 plus = fmap (const add) plusChar
@@ -31,9 +29,15 @@ multiply = fmap (const multiply) multiplyChar
   where multiply a b = a * b
         multiplyChar = char '*'
 
+expressionWithParens :: Parser Float
+expressionWithParens = between (char '(') (char ')') expression
+
+expressionWithParensOrNumber :: Parser Float
+expressionWithParensOrNumber = withWhitespace (expressionWithParens <|> number)
+  where withWhitespace parser = between spaces spaces parser 
+
 chainMultiplyDivide :: Parser Float
-chainMultiplyDivide = chainl1 number (divide <|> multiply) 
+chainMultiplyDivide = chainl1 expressionWithParensOrNumber (divide <|> multiply) 
 
 expression :: Parser Float
 expression = chainl1 chainMultiplyDivide (plus <|> subtract) 
-
